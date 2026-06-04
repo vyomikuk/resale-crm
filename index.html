@@ -169,7 +169,7 @@
 
 <script>
 // ── CONFIG ──────────────────────────────────────────────────────────────────
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbze-AR-JRHg7YAxfQv2bSmGqhU9QbUKNL_poKojOmYG-J2Wpalyus7DtXKcyujaOlVc9Q/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyzGLJfDsI0nvoqwjYcdp6c5IEJ1zo_rLgCMHB10WlUfne35tQVPMijYR3Fo1BhEDH7/exec";
 
 const STAGES = ["Seller Lead","Video Done","Listed","Sold"];
 const STAGE_COLORS = {"Seller Lead":"#6c63ff","Video Done":"#f7931e","Listed":"#00b4d8","Sold":"#06d6a0"};
@@ -380,15 +380,14 @@ async function saveLead(){
     assignedTo: document.getElementById("f-assigned").value,
   };
   try {
-    await fetch(SCRIPT_URL, {
-      method:"POST", mode:"no-cors",
-      headers:{"Content-Type":"text/plain"},
-      body: JSON.stringify({action: editingId?"updateLead":"addLead", lead})
-    });
+    const action = editingId ? "updateLead" : "addLead";
+    const params = new URLSearchParams({action, ...lead});
+    await fetch(`${SCRIPT_URL}?${params.toString()}`);
     if(editingId){ leads = leads.map(l=>l.id===editingId?lead:l); }
     else { leads.push(lead); }
     closeModal(); renderView();
-    showToast(editingId?"Lead updated!":"Lead added! Also add to Google Sheet for permanent save.","success");
+    showToast(editingId?"Lead updated!":"Lead added!","success");
+    setTimeout(loadLeads, 1500);
   } catch(e){ showToast("Save failed","error"); }
 }
 
@@ -396,14 +395,15 @@ async function moveStage(id, stage){
   const lead = leads.find(l=>l.id===id);
   if(!lead) return;
   lead.stage = stage;
-  await fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({action:"updateLead",lead})});
+  const params = new URLSearchParams({action:"updateLead", ...lead});
+  await fetch(`${SCRIPT_URL}?${params.toString()}`);
   renderView();
 }
 
 async function deleteLead(id){
   if(!confirm("Delete this lead?")) return;
   leads = leads.filter(l=>l.id!==id);
-  await fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({action:"deleteLead",id})});
+  await fetch(`${SCRIPT_URL}?action=deleteLead&id=${id}`);
   renderView();
   showToast("Lead deleted","success");
 }
