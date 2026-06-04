@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resale CRM</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500;700&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0a0b0f;color:#e8e8e8;font-family:'DM Sans',sans-serif;min-height:100vh}
+  ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#0a0b0f}::-webkit-scrollbar-thumb{background:#22252e;border-radius:3px}
+  .header{border-bottom:1px solid #16181f;padding:16px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .logo{font-size:20px;font-weight:800}.logo span{color:#6c63ff}
+  .subtitle{font-size:11px;color:#444;margin-top:2px}
+  .header-btns{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .btn{padding:8px 16px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;border:none}
+  .btn-primary{background:#6c63ff;color:#fff}
+  .btn-secondary{background:#1a1d24;color:#888;border:1px solid #22252e!important}
+  .btn-sm{padding:7px 13px;font-size:12px}
+  .view-toggle{display:flex;background:#1a1d24;border:1px solid #22252e;border-radius:8px;overflow:hidden}
+  .view-btn{padding:8px 16px;border:none;cursor:pointer;font-size:12px;font-family:inherit;transition:all 0.2s}
+  .view-btn.active{background:#6c63ff;color:#fff;font-weight:700}
+  .view-btn:not(.active){background:transparent;color:#666}
+  .main{padding:20px 28px}
+  .stats{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+  .stat-card{background:#111318;border:1px solid #22252e;border-radius:12px;padding:18px 22px;flex:1;min-width:120px}
+  .stat-val{font-size:26px;font-weight:800;font-family:'DM Mono',monospace;letter-spacing:-1px}
+  .stat-label{font-size:12px;color:#666;margin-top:2px;font-weight:500}
+  .stat-sub{font-size:11px;color:#444;margin-top:4px}
+  .filters{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+  .search-input{flex:1;min-width:220px;background:#111318;border:1px solid #22252e;color:#e8e8e8;border-radius:8px;padding:9px 12px;font-size:13px;outline:none;font-family:inherit}
+  .filter-select{background:#111318;border:1px solid #22252e;color:#aaa;border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer;outline:none;font-family:inherit}
+  .clear-btn{background:#111318;border:1px solid #ff4d4d33!important;color:#ff4d4d;border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer;font-family:inherit}
+  /* KANBAN */
+  .kanban{display:flex;gap:14px;overflow-x:auto;padding-bottom:12px}
+  .kanban-col{min-width:260px;flex:1}
+  .col-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:8px 12px;border-radius:8px}
+  .col-title{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:0.5px}
+  .col-count{border-radius:20px;padding:1px 8px;font-size:11px;font-weight:700}
+  .col-cards{display:flex;flex-direction:column;gap:10px}
+  .lead-card{background:#111318;border:1px solid #22252e;border-radius:10px;padding:14px;cursor:pointer;transition:border-color 0.2s}
+  .lead-card:hover{border-color:#2a2d3a}
+  .lead-card.overdue{border-color:#ffaa0033}
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+  .card-name{font-weight:700;font-size:14px}
+  .card-building{font-size:12px;color:#666;margin-bottom:4px}
+  .card-price{font-size:12px;color:#06d6a0;font-weight:700;font-family:'DM Mono',monospace}
+  .card-notes{font-size:11px;color:#555;margin-bottom:10px;line-height:1.4}
+  .card-footer{display:flex;justify-content:space-between;align-items:center}
+  .card-meta{font-size:10px;color:#444}
+  .card-meta.overdue{color:#ffaa00}
+  .card-actions{display:flex;gap:4px}
+  .stage-btn{border-radius:6px;padding:2px 7px;font-size:9px;cursor:pointer;font-weight:700;font-family:inherit;border:none}
+  .del-btn{background:#ff4d4d22;color:#ff4d4d;border:1px solid #ff4d4d33;border-radius:6px;padding:2px 7px;font-size:10px;cursor:pointer;font-family:inherit}
+  .card-assigned{margin-top:8px;font-size:10px;color:#555}
+  .no-leads{color:#333;font-size:12px;text-align:center;padding:20px 0}
+  /* STATUS BADGE */
+  .badge{display:inline-flex;align-items:center;gap:5px;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase}
+  .badge-dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+  /* TABLE */
+  .table-wrap{background:#111318;border-radius:12px;border:1px solid #22252e;overflow-x:auto}
+  table{width:100%;border-collapse:collapse}
+  th{padding:10px 14px;text-align:left;font-size:10px;color:#555;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;background:#0d0e12}
+  td{padding:12px 14px;font-size:12px;color:#aaa;border-top:1px solid #16181f}
+  tr{cursor:pointer}tr:hover td{background:#0d0e12}
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;background:#000000bb;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+  .modal{background:#111318;border-radius:16px;border:1px solid #22252e;width:100%;max-width:580px;max-height:90vh;overflow-y:auto;padding:28px}
+  .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+  .modal-title{font-size:18px;font-weight:800}
+  .modal-close{background:none;border:none;color:#666;font-size:20px;cursor:pointer}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .form-field label{font-size:11px;color:#666;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:4px}
+  .form-input{background:#0d0e12;border:1px solid #22252e;color:#e8e8e8;border-radius:8px;padding:9px 12px;font-size:13px;width:100%;outline:none;font-family:inherit}
+  .form-input:focus{border-color:#6c63ff44}
+  .span-2{grid-column:span 2}
+  .modal-btns{display:flex;gap:10px;margin-top:20px}
+  .toast{position:fixed;top:20px;right:20px;z-index:2000;padding:10px 18px;border-radius:10px;font-weight:700;font-size:13px;box-shadow:0 4px 20px #0008;transition:opacity 0.3s}
+  .toast.success{background:#06d6a0;color:#fff}
+  .toast.error{background:#ff4d4d;color:#fff}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="logo"><span>Resale</span> CRM</div>
+    <div class="subtitle" id="conn-status">🟢 Live — Google Sheets connected</div>
+  </div>
+  <div class="header-btns">
+    <button class="btn btn-secondary btn-sm" onclick="loadLeads()">↻ Refresh</button>
+    <div class="view-toggle">
+      <button class="view-btn active" id="btn-kanban" onclick="setView('kanban')">⬛ Kanban</button>
+      <button class="view-btn" id="btn-table" onclick="setView('table')">☰ Table</button>
+    </div>
+    <button class="btn btn-primary" onclick="openModal()">+ Add Lead</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="stats">
+    <div class="stat-card"><div class="stat-val" id="s-total" style="color:#e8e8e8">0</div><div class="stat-label">Total Leads</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-hot" style="color:#ff4d4d">0</div><div class="stat-label">🔥 Hot Leads</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-sold" style="color:#06d6a0">0</div><div class="stat-label">✅ Sold</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-followup" style="color:#ffaa00">0</div><div class="stat-label">⏰ Follow-Up Due</div><div class="stat-sub">not contacted in 3+ days</div></div>
+  </div>
+
+  <div class="filters">
+    <input class="search-input" placeholder="🔍 Search name, building, number..." oninput="renderView()" id="f-search">
+    <select class="filter-select" onchange="renderView()" id="f-area"><option value="">All Areas</option></select>
+    <select class="filter-select" onchange="renderView()" id="f-bhk">
+      <option value="">All BHK</option>
+      <option>1 BHK</option><option>2 BHK</option><option>3 BHK</option><option>4 BHK</option><option>4+ BHK</option>
+    </select>
+    <select class="filter-select" onchange="renderView()" id="f-status">
+      <option value="">All Status</option><option>Hot</option><option>Warm</option><option>Cold</option>
+    </select>
+    <button class="clear-btn" onclick="clearFilters()">Clear</button>
+  </div>
+
+  <div id="view-container"></div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">New Seller Lead</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-field"><label>Owner Name</label><input class="form-input" id="f-name" placeholder="Rajesh Mehta"></div>
+      <div class="form-field"><label>Phone Number</label><input class="form-input" id="f-number" placeholder="9820112233"></div>
+      <div class="form-field"><label>Building Name</label><input class="form-input" id="f-building" placeholder="Maker Tower"></div>
+      <div class="form-field"><label>Asking Price</label><input class="form-input" id="f-price" placeholder="3.2 Cr"></div>
+      <div class="form-field"><label>Assigned To</label><input class="form-input" id="f-assigned" placeholder="Aryan"></div>
+      <div class="form-field"><label>Last Contacted</label><input class="form-input" id="f-date" type="date"></div>
+      <div class="form-field"><label>Area</label><select class="form-input" id="f-area-inp"></select></div>
+      <div class="form-field"><label>BHK</label>
+        <select class="form-input" id="f-bhk-inp">
+          <option>1 BHK</option><option selected>2 BHK</option><option>3 BHK</option><option>4 BHK</option><option>4+ BHK</option>
+        </select>
+      </div>
+      <div class="form-field"><label>Status</label>
+        <select class="form-input" id="f-status-inp">
+          <option>Hot</option><option selected>Warm</option><option>Cold</option>
+        </select>
+      </div>
+      <div class="form-field"><label>Pipeline Stage</label>
+        <select class="form-input" id="f-stage-inp">
+          <option>Seller Lead</option><option>Video Done</option><option>Listed</option><option>Sold</option>
+        </select>
+      </div>
+      <div class="form-field"><label>Lead Source</label>
+        <select class="form-input" id="f-source-inp">
+          <option>NoBroker</option><option>MagicBricks</option><option>99Acres</option><option>Watchman Visit</option>
+          <option>25k List</option><option>Instagram</option><option>Referral</option><option>Cold Call</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-field span-2"><label>Notes</label><textarea class="form-input" id="f-notes" rows="3" placeholder="e.g. Relocating to Bangalore, motivated seller"></textarea></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-primary" style="flex:1" onclick="saveLead()">Save Lead</button>
+      <button class="btn btn-secondary" style="flex:1" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────────────────────
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbze-AR-JRHg7YAxfQv2bSmGqhU9QbUKNL_poKojOmYG-J2Wpalyus7DtXKcyujaOlVc9Q/exec";
+
+const STAGES = ["Seller Lead","Video Done","Listed","Sold"];
+const STAGE_COLORS = {"Seller Lead":"#6c63ff","Video Done":"#f7931e","Listed":"#00b4d8","Sold":"#06d6a0"};
+const STATUS_STYLE = {
+  Hot:{bg:"#ff4d4d22",text:"#ff4d4d",dot:"#ff4d4d"},
+  Warm:{bg:"#ffaa0022",text:"#ffaa00",dot:"#ffaa00"},
+  Cold:{bg:"#4da6ff22",text:"#4da6ff",dot:"#4da6ff"}
+};
+const AREAS = ["Cuffe Parade","Colaba","Nariman Point","Marine Lines","Churchgate","Fort","Malabar Hill","Walkeshwar","Nepean Sea Road","Pedder Road","Breach Candy","Tardeo","Grant Road","Worli","Lower Parel","Prabhadevi","Dadar","Matunga","Sion","Wadala","Chembur","Govandi","Mankhurd","Bandra","Khar","Santacruz","Vile Parle","Andheri","Jogeshwari","Goregaon","Malad","Kandivali","Borivali","Dahisar","Kurla","Ghatkopar","Vikhroli","Kanjurmarg","Bhandup","Mulund","Nahur","Vashi","Belapur","Kharghar","Panvel","Airoli","Ghansoli","Kopar Khairane","Nerul","Sanpada","Thane","Ghodbunder Road","Majiwada","Powai","Chandivali","Other"];
+
+let leads = [];
+let editingId = null;
+let currentView = "kanban";
+
+// populate area dropdowns
+function populateAreas(){
+  const sel = document.getElementById("f-area");
+  const inp = document.getElementById("f-area-inp");
+  AREAS.forEach(a => {
+    sel.innerHTML += `<option value="${a}">${a}</option>`;
+    inp.innerHTML += `<option value="${a}">${a}</option>`;
+  });
+}
+populateAreas();
+
+// ── LOAD ────────────────────────────────────────────────────────────────────
+async function loadLeads(){
+  try {
+    const res = await fetch(`${SCRIPT_URL}?action=getLeads`);
+    const data = await res.json();
+    leads = (data.leads || []).map((l,i) => ({...l, id: l.id || String(i+1)}));
+    renderStats();
+    renderView();
+  } catch(e){
+    showToast("Failed to load. Check your connection.","error");
+  }
+}
+
+// ── STATS ───────────────────────────────────────────────────────────────────
+function renderStats(){
+  document.getElementById("s-total").textContent = leads.length;
+  document.getElementById("s-hot").textContent = leads.filter(l=>l.status==="Hot").length;
+  document.getElementById("s-sold").textContent = leads.filter(l=>l.stage==="Sold").length;
+  document.getElementById("s-followup").textContent = leads.filter(l=>{
+    const d = new Date(l.lastContacted||l["last contacted"]);
+    return (Date.now()-d)/86400000 > 3 && l.stage !== "Sold";
+  }).length;
+}
+
+// ── FILTER ──────────────────────────────────────────────────────────────────
+function getFiltered(){
+  const search = document.getElementById("f-search").value.toLowerCase();
+  const area = document.getElementById("f-area").value;
+  const bhk = document.getElementById("f-bhk").value;
+  const status = document.getElementById("f-status").value;
+  return leads.filter(l => {
+    if(area && l.area !== area) return false;
+    if(bhk && l.bhk !== bhk) return false;
+    if(status && l.status !== status) return false;
+    if(search && !`${l.name} ${l.building} ${l.number}`.toLowerCase().includes(search)) return false;
+    return true;
+  });
+}
+
+function clearFilters(){
+  document.getElementById("f-search").value="";
+  document.getElementById("f-area").value="";
+  document.getElementById("f-bhk").value="";
+  document.getElementById("f-status").value="";
+  renderView();
+}
+
+// ── VIEW ────────────────────────────────────────────────────────────────────
+function setView(v){
+  currentView = v;
+  document.getElementById("btn-kanban").className = "view-btn" + (v==="kanban"?" active":"");
+  document.getElementById("btn-table").className = "view-btn" + (v==="table"?" active":"");
+  renderView();
+}
+
+function renderView(){
+  renderStats();
+  if(currentView==="kanban") renderKanban();
+  else renderTable();
+}
+
+// ── KANBAN ──────────────────────────────────────────────────────────────────
+function renderKanban(){
+  const filtered = getFiltered();
+  const c = document.getElementById("view-container");
+  c.innerHTML = `<div class="kanban">${STAGES.map(stage => {
+    const sc = STAGE_COLORS[stage];
+    const cards = filtered.filter(l => (l.stage||"Seller Lead") === stage);
+    return `<div class="kanban-col">
+      <div class="col-header" style="background:${sc}18;border:1px solid ${sc}33">
+        <span class="col-title" style="color:${sc}">${stage}</span>
+        <span class="col-count" style="background:${sc}33;color:${sc}">${cards.length}</span>
+      </div>
+      <div class="col-cards">
+        ${cards.length===0?'<div class="no-leads">No leads</div>':cards.map(l=>cardHTML(l)).join("")}
+      </div>
+    </div>`;
+  }).join("")}</div>`;
+}
+
+function cardHTML(l){
+  const days = Math.floor((Date.now()-new Date(l.lastContacted||l["last contacted"]))/86400000);
+  const overdue = days > 3 && l.stage !== "Sold";
+  const ss = STATUS_STYLE[l.status] || STATUS_STYLE.Cold;
+  const nextStages = STAGES.filter(s=>s!==(l.stage||"Seller Lead")).slice(0,2);
+  return `<div class="lead-card${overdue?' overdue':''}" onclick="openModal('${l.id}')">
+    <div class="card-top">
+      <div class="card-name">${l.name||""}</div>
+      <span class="badge" style="background:${ss.bg};color:${ss.text}">
+        <span class="badge-dot" style="background:${ss.dot}"></span>${l.status||""}
+      </span>
+    </div>
+    <div class="card-building">🏢 ${l.building||""}, ${l.area||""}</div>
+    <div class="card-price">${l.askingPrice||l["asking price"]||""} · ${l.bhk||""}</div>
+    <div class="card-notes">${(l.notes||"").slice(0,60)}${(l.notes||"").length>60?"...":""}</div>
+    <div class="card-footer">
+      <div class="card-meta${overdue?' overdue':''}">${overdue?'⚠️ '+days+'d ago':days+'d ago'} · ${l.source||""}</div>
+      <div class="card-actions" onclick="event.stopPropagation()">
+        ${nextStages.map(s=>`<button class="stage-btn" style="background:${STAGE_COLORS[s]}22;color:${STAGE_COLORS[s]};border:1px solid ${STAGE_COLORS[s]}44" onclick="moveStage('${l.id}','${s}')">→ ${s.split(" ")[0]}</button>`).join("")}
+        <button class="del-btn" onclick="deleteLead('${l.id}')">✕</button>
+      </div>
+    </div>
+    ${l.assignedTo||l["assigned to"]?`<div class="card-assigned">👤 ${l.assignedTo||l["assigned to"]}</div>`:""}
+  </div>`;
+}
+
+// ── TABLE ───────────────────────────────────────────────────────────────────
+function renderTable(){
+  const filtered = getFiltered();
+  const c = document.getElementById("view-container");
+  c.innerHTML = `<div class="table-wrap"><table>
+    <thead><tr>
+      <th>Name</th><th>Number</th><th>Building / Area</th><th>BHK</th><th>Price</th><th>Status</th><th>Stage</th><th>Source</th><th>Last Contact</th><th>Assigned</th><th></th>
+    </tr></thead>
+    <tbody>${filtered.length===0?`<tr><td colspan="11" style="text-align:center;color:#333;padding:40px">No leads found</td></tr>`:
+    filtered.map(l => {
+      const days = Math.floor((Date.now()-new Date(l.lastContacted||l["last contacted"]))/86400000);
+      const overdue = days > 3 && l.stage !== "Sold";
+      const ss = STATUS_STYLE[l.status]||STATUS_STYLE.Cold;
+      const sc = STAGE_COLORS[l.stage||"Seller Lead"];
+      return `<tr onclick="openModal('${l.id}')">
+        <td style="font-weight:700;color:#e8e8e8">${l.name||""}</td>
+        <td style="font-family:'DM Mono',monospace">${l.number||""}</td>
+        <td>${l.building||""}<br><span style="color:#555;font-size:11px">${l.area||""}</span></td>
+        <td>${l.bhk||""}</td>
+        <td style="color:#06d6a0;font-weight:700;font-family:'DM Mono',monospace">${l.askingPrice||l["asking price"]||""}</td>
+        <td><span class="badge" style="background:${ss.bg};color:${ss.text}"><span class="badge-dot" style="background:${ss.dot}"></span>${l.status||""}</span></td>
+        <td><span class="badge" style="background:${sc}22;color:${sc};border:1px solid ${sc}44">${l.stage||"Seller Lead"}</span></td>
+        <td>${l.source||""}</td>
+        <td style="color:${overdue?'#ffaa00':'#555'}">${overdue?'⚠️ '+days+'d':days+'d ago'}</td>
+        <td>${l.assignedTo||l["assigned to"]||""}</td>
+        <td onclick="event.stopPropagation()"><button onclick="deleteLead('${l.id}')" style="background:none;border:none;color:#444;cursor:pointer;font-size:14px" onmouseover="this.style.color='#ff4d4d'" onmouseout="this.style.color='#444'">✕</button></td>
+      </tr>`;
+    }).join("")}
+    </tbody>
+  </table></div>`;
+}
+
+// ── MODAL ───────────────────────────────────────────────────────────────────
+function openModal(id){
+  editingId = id || null;
+  document.getElementById("modal-title").textContent = id ? "Edit Lead" : "New Seller Lead";
+  document.getElementById("f-date").value = new Date().toISOString().split("T")[0];
+  if(id){
+    const l = leads.find(x=>x.id===id);
+    if(!l) return;
+    document.getElementById("f-name").value = l.name||"";
+    document.getElementById("f-number").value = l.number||"";
+    document.getElementById("f-building").value = l.building||"";
+    document.getElementById("f-price").value = l.askingPrice||l["asking price"]||"";
+    document.getElementById("f-assigned").value = l.assignedTo||l["assigned to"]||"";
+    document.getElementById("f-date").value = l.lastContacted||l["last contacted"]||"";
+    document.getElementById("f-area-inp").value = l.area||"";
+    document.getElementById("f-bhk-inp").value = l.bhk||"2 BHK";
+    document.getElementById("f-status-inp").value = l.status||"Warm";
+    document.getElementById("f-stage-inp").value = l.stage||"Seller Lead";
+    document.getElementById("f-source-inp").value = l.source||"NoBroker";
+    document.getElementById("f-notes").value = l.notes||"";
+  } else {
+    ["f-name","f-number","f-building","f-price","f-assigned","f-notes"].forEach(id=>document.getElementById(id).value="");
+    document.getElementById("f-status-inp").value="Warm";
+    document.getElementById("f-stage-inp").value="Seller Lead";
+  }
+  document.getElementById("modal").style.display="flex";
+}
+
+function closeModal(){ document.getElementById("modal").style.display="none"; editingId=null; }
+
+async function saveLead(){
+  const lead = {
+    id: editingId || Date.now().toString(),
+    name: document.getElementById("f-name").value,
+    number: document.getElementById("f-number").value,
+    building: document.getElementById("f-building").value,
+    area: document.getElementById("f-area-inp").value,
+    bhk: document.getElementById("f-bhk-inp").value,
+    askingPrice: document.getElementById("f-price").value,
+    status: document.getElementById("f-status-inp").value,
+    stage: document.getElementById("f-stage-inp").value,
+    lastContacted: document.getElementById("f-date").value,
+    notes: document.getElementById("f-notes").value,
+    source: document.getElementById("f-source-inp").value,
+    assignedTo: document.getElementById("f-assigned").value,
+  };
+  try {
+    await fetch(SCRIPT_URL, {
+      method:"POST", mode:"no-cors",
+      headers:{"Content-Type":"text/plain"},
+      body: JSON.stringify({action: editingId?"updateLead":"addLead", lead})
+    });
+    if(editingId){ leads = leads.map(l=>l.id===editingId?lead:l); }
+    else { leads.push(lead); }
+    closeModal(); renderView();
+    showToast(editingId?"Lead updated!":"Lead added! Also add to Google Sheet for permanent save.","success");
+  } catch(e){ showToast("Save failed","error"); }
+}
+
+async function moveStage(id, stage){
+  const lead = leads.find(l=>l.id===id);
+  if(!lead) return;
+  lead.stage = stage;
+  await fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({action:"updateLead",lead})});
+  renderView();
+}
+
+async function deleteLead(id){
+  if(!confirm("Delete this lead?")) return;
+  leads = leads.filter(l=>l.id!==id);
+  await fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({action:"deleteLead",id})});
+  renderView();
+  showToast("Lead deleted","success");
+}
+
+// ── TOAST ───────────────────────────────────────────────────────────────────
+function showToast(msg, type){
+  const t = document.createElement("div");
+  t.className = `toast ${type}`; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 3500);
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+loadLeads();
+</script>
+</body>
+</html>
